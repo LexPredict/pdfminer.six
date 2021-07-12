@@ -704,7 +704,8 @@ class PDFPageInterpreter:
 
         :param space: a number expressed in unscaled text space units.
         """
-        self.textstate.charspace = space
+        if val := self._extract_float(space) is not None:
+            self.textstate.charspace = val
         return
 
     def do_Tw(self, space):
@@ -714,8 +715,20 @@ class PDFPageInterpreter:
 
         :param space: a number expressed in unscaled text space units
         """
-        self.textstate.wordspace = space
+        if val := self._extract_float(space) is not None:
+            self.textstate.wordspace = val
         return
+
+    @classmethod
+    def _extract_float(cls, any_type_value):
+        if any_type_value is not None and isinstance(any_type_value, (int, float)):
+            return any_type_value
+        elif isinstance(any_type_value, bytes):
+            try:
+                return float(any_type_value.decode('utf-8'))
+            except ValueError:
+                pass
+        return None
 
     def do_Tz(self, scale):
         """Set the horizontal scaling.
