@@ -823,8 +823,12 @@ class PDFPageInterpreter:
             if settings.STRICT:
                 raise PDFInterpreterError(f'Wrong argument type ({type(seq).__name__})')
             return
-        self.device.render_string(self.textstate, seq, self.ncs,
-                                  self.graphicstate.copy())
+        try:
+            self.device.render_string(self.textstate, seq, self.ncs,
+                                      self.graphicstate.copy())
+        except:
+            if settings.STRICT:
+                raise
 
     def do_Tj(self, s):
         """Show text"""
