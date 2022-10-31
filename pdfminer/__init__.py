@@ -1,4 +1,4 @@
-__version__ = "__VERSION__"  # auto replaced with tag in github actions
+__version__ = "20221031-grid-fix"
 
 if __name__ == "__main__":
     print(__version__)

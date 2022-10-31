@@ -86,6 +86,7 @@ class LAParams:
         boxes_flow: Optional[float] = 0.5,
         detect_vertical: bool = False,
         all_texts: bool = False,
+        grid_size: int = 50,
     ) -> None:
         self.line_overlap = line_overlap
         self.char_margin = char_margin
@@ -94,6 +95,7 @@ class LAParams:
         self.boxes_flow = boxes_flow
         self.detect_vertical = detect_vertical
         self.all_texts = all_texts
+        self.grid_size = grid_size
 
         self._validate()
 
@@ -817,7 +819,7 @@ class LTLayoutContainer(LTContainer[LTComponent]):
         self, laparams: LAParams, lines: Iterable[LTTextLine]
     ) -> Iterator[LTTextBox]:
         """Group neighboring lines to textboxes"""
-        plane: Plane[LTTextLine] = Plane(self.bbox)
+        plane: Plane[LTTextLine] = Plane(self.bbox, laparams.grid_size)
         plane.extend(lines)
         boxes: Dict[LTTextLine, LTTextBox] = {}
         for line in lines:
@@ -868,7 +870,7 @@ class LTLayoutContainer(LTContainer[LTComponent]):
         """
 
         ElementT = Union[LTTextBox, LTTextGroup]
-        plane: Plane[ElementT] = Plane(self.bbox)
+        plane: Plane[ElementT] = Plane(self.bbox, laparams.grid_size)
 
         def dist(obj1: LTComponent, obj2: LTComponent) -> float:
             """A distance function between two TextBoxes.

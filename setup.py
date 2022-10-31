@@ -11,7 +11,7 @@ with open(path.join(path.abspath(path.dirname(__file__)), "README.md")) as f:
     readme = f.read()
 
 setup(
-    name="pdfminer.six",
+    name="pdfminer.six-lex",
     version=package.__version__,
     packages=["pdfminer"],
     package_data={"pdfminer": ["cmap/*.pickle.gz", "py.typed"]},

@@ -2,6 +2,7 @@
 Miscellaneous Routines.
 """
 import io
+import math
 import pathlib
 import string
 import struct
@@ -688,12 +689,30 @@ class Plane(Generic[LTComponentT]):
     which is sorted by its x or y coordinate.
     """
 
-    def __init__(self, bbox: Rect, gridsize: int = 50) -> None:
+    def __init__(self, bbox: Rect, gridsize: int = 0) -> None:
         self._seq: List[LTComponentT] = []  # preserve the object order.
         self._objs: Set[LTComponentT] = set()
         self._grid: Dict[Point, List[LTComponentT]] = {}
-        self.gridsize = gridsize
+        self.gridsize = gridsize or self.determine_grid_size(bbox)
         (self.x0, self.y0, self.x1, self.y1) = bbox
+
+    @classmethod
+    def determine_grid_size(cls, bbox, default_size=50) -> int:
+        w, h = bbox[2] - bbox[0], bbox[3] - bbox[1]
+        total_size = w * h
+        # reference documents I explored had about 3000 x 4000 units size
+        if total_size < 3000 * 4000:
+            return default_size
+        # we expect the grid to consist of ~5000 cells
+        cell_size = total_size / 5000
+        side_size = round(math.sqrt(cell_size))
+        # make grid size a nice round number
+        order = math.floor(math.log10(side_size))  # 50 -> 1, 101 -> 2, 9999 -> 3 ...
+        mult = math.pow(10, order)  # 50 -> 10, 101 -> 100, 9999 -> 1000
+        mantis = side_size / mult
+        mantis = round(mantis / 0.25) * 0.25
+        rounded_num = round(mantis * mult)
+        return rounded_num
 
     def __repr__(self) -> str:
         return "<Plane objs=%r>" % list(self)

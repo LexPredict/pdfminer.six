@@ -251,13 +251,19 @@ class PDFContentParser(PSStackParser[Union[PSKeyword, PDFStream]]):
         PSStackParser.__init__(self, None)  # type: ignore[arg-type]
 
     def fillfp(self) -> None:
-        if not self.fp:
-            if self.istream < len(self.streams):
-                strm = stream_value(self.streams[self.istream])
-                self.istream += 1
-            else:
-                raise PSEOF("Unexpected EOF, file truncated?")
+        if self.fp:
+            return
+        if self.istream < len(self.streams):
+            strm = stream_value(self.streams[self.istream])
+            self.istream += 1
+        else:
+            raise PSEOF("Unexpected EOF, file truncated?")
+        try:
             self.fp = BytesIO(strm.get_data())
+        except:
+            if settings.STRICT:
+                raise
+            self.fp = BytesIO(bytes())
 
     def seek(self, pos: int) -> None:
         self.fillfp()
@@ -898,11 +904,17 @@ class PDFPageInterpreter:
             if settings.STRICT:
                 raise PDFInterpreterError("No font specified!")
             return
+        if not isinstance(seq, list):
+            if settings.STRICT:
+                raise PDFInterpreterError(f'Wrong argument type ({type(seq).__name__})')
+            return
         assert self.ncs is not None
-        self.device.render_string(
-            self.textstate, cast(PDFTextSeq, seq), self.ncs, self.graphicstate.copy()
-        )
-        return
+        try:
+            self.device.render_string(self.textstate, seq, self.ncs,
+                                      self.graphicstate.copy())
+        except:
+            if settings.STRICT:
+                raise
 
     def do_Tj(self, s: PDFStackT) -> None:
         """Show text"""
